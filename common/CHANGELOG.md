@@ -1,0 +1,234 @@
+# Changelog
+
+## 4.5.1 - 2026-10-06
+
+### Changed (3)
+
+- Fixed HTTP `500`, `502`, `503` and `504` responses never being retried: `GET` and `DELETE` requests are now retried up to `retries` times before raising `ServerError`.
+- Fixed network errors being retried one time less than `retries`: a request is now sent up to `retries + 1` times in total.
+- Signed requests are now signed again on each retry, so a retried request gets a fresh `timestamp` and `signature` instead of reusing ones that may fall outside `recvWindow`. A `timestamp` set on the request parameters is still kept.
+
+## 4.5.0 - 2026-09-23
+
+### Added (1)
+
+- Added credential redaction to `repr()`, `str()`, `vars()` and `__dict__` of `ConfigurationRestAPI`, `ConfigurationWebSocketAPI` and `ConfigurationWebSocketStreams`, so logging a configuration no longer exposes API keys, secrets or private keys. Reading an attribute is unchanged: `configuration.api_key` still returns the real key.
+
+### Changed (3)
+
+- A `timestamp` already set on the request parameters is now kept instead of being overwritten, on both the REST API and the WebSocket API.
+- WebSocket connections now resolve `https_agent` before connecting: leaving it unset uses the default verified TLS context, and `https_agent=False` warns that certificate verification is disabled.
+- Fixed a response being returned as a raw payload when the endpoint sends a number where the model declares a `StrictStr`, or a string where it declares a `StrictInt`: `relax_model_strictness()` relaxes those two scalars so the response is parsed into the model.
+
+### Removed (1)
+
+- Removed the `Web3 Wallet` base url and the `web3_headers` parameter of `send_request()`.
+
+## 4.4.0 - 2026-09-02
+
+### Added (1)
+
+- Added `retry_after` to `TooManyRequestsError` and `RateLimitBanError`.
+
+### Changed (3)
+
+- Fixed user data stream events not being matched to their schema when the event name is `SCREAMING_SNAKE_CASE`, such as `ORDER_TRADE_UPDATE`.
+- Fixed user data events received on a combined stream being passed to the callback as a raw payload.
+- Fixed `klines` and `uiKlines` failing on the WebSocket API with `type object 'int' has no attribute 'is_array'`.
+
+## 4.3.0 - 2026-08-18
+
+### Added (1)
+
+- Added `Stocks` base url
+
+## 4.2.0 - 2026-08-07
+
+### Added (1)
+
+- Added a `reconnect` connection event to `on_connection()` and `off_connection()`, fired when a connection is being replaced by a planned reconnect.
+
+### Changed (2)
+
+- `close` is now only emitted when a connection is gone for good: a connection being replaced by a reconnect emits `reconnect` instead, so consumers no longer have to guess against `connection.reconnect` / `reconnect_tasks`.
+- Update Dependencies
+
+## 4.1.0 - 2026-07-30
+
+### Added (1)
+
+- Added `reconnect_attempts` to `ConfigurationWebSocketAPI` and `ConfigurationWebSocketStreams` to retry a failed reconnection instead of giving up after the first attempt. Must be between `1` and `10` (default: `3`).
+
+### Changed (9)
+
+- Update Websocket Response type.
+- Add Websocket optional `open`, `ping`, `pong`, `close`, `error` event type callbacks through `on_connection()`. 
+- Add `off_connection()` to unregister connection event callbacks.
+- Handle Websocket ping/pong manually so the `ping` and `pong` callbacks are received on both Websocket Streams and Websocket API connections.
+- Send a single `SUBSCRIBE`/`UNSUBSCRIBE` message per connection instead of one message per stream, on `subscribe()`, `unsubscribe()` and when streams are restored after a reconnection.
+- Track the scheduled connection rotation per connection and cancel it when that connection is closed, discarded or replaced, so rotations no longer accumulate over time.
+- Allow `reconnect()` to be called directly to reconnect immediately, without going through `schedule_reconnect()`.
+- Fixed a connection closed by the user being reconnected on `serverShutdown`, as the flag guarding it was read from the wrong object and never set.
+- Fixed the connection id being reused as the request id when restoring streams after a reconnection, which sent a UUID where an integer id is required.
+
+## 4.0.3 - 2026-07-13
+
+### Added (1)
+
+- Added `Alpha Websocket Streams` base url
+
+## 4.0.2 - 2026-06-26
+
+### Added (1)
+
+- Added `W3W Prediction` base url
+
+## 4.0.1 - 2026-06-17
+
+### Changed (1)
+
+- Fixed `web3_signature` signature error
+
+## 4.0.0 - 2026-06-09
+
+### Changed (2)
+
+- Updated `send_request()` to accept web3 requests
+- Updated `pyproject.toml` dependencies
+
+## 3.10.0 - 2026-05-29
+
+### Removed (1)
+
+- Removed `DERIVATIVES_TRADING_PORTFOLIO_MARGIN_REST_API_TESTNET_URL` and `DERIVATIVES_TRADING_PORTFOLIO_MARGIN_WS_STREAMS_TESTNET_URL` constant as the testnet environment is not available for `portfolio margin`.
+
+## 3.9.2 - 2026-05-22
+
+### Changed (1)
+
+- Updated `pyproject.toml` dependencies
+
+## 3.9.1 - 2026-04-29
+
+### Changed (1)
+
+- Updated `pyproject.toml` dependencies
+
+## 3.9.0 - 2026-04-29
+
+### Updated (1)
+
+- Fix `WebSocketCommon` reconnection logic to properly handle reconnections and avoid multiple concurrent reconnection attempts.
+
+## 3.8.0 - 2026-03-26
+
+### Added (2)
+
+- Added `py.typed` file to indicate that the package supports type hints.
+- Added clear cache option to `Signer` class to allow clearing cached signatures.
+
+### Updated (4)
+
+- Fix bug with exposing secrets on messages logging.
+- Updated `print` statement to be logged instead of printed.
+- Updated mutable default parameter to avoid shared state between instances.
+- Updated `tox.ini` file
+
+## 3.7.0 - 2026-03-16
+
+### Added (1)
+
+- Added `serverShutdown` event handler.
+
+## 3.6.0 - 2026-02-11
+
+### Updated (2)
+
+- Updated `ws_api_payload` function to include the `id` sent in the payload.
+- Updated `pyproject.toml` dependencies
+
+## 3.5.0 - 2026-01-29
+
+### Updated (1)
+
+- Fixed `WebsocketStream` method `Subscribe` when sending multiple streams in a single request.
+
+## 3.4.1 - 2026-01-23
+
+### Added (1)
+
+- Added `Alpha` base url
+
+## 3.4.0 - 2026-01-13
+
+### Changed (1)
+
+- Support Derivatives Trading Options different WS Streams URL paths.
+
+## 3.3.0 - 2025-12-22
+
+### Changed (6)
+
+- Added `body` parameter to `send_request` function for Rest API http requests.
+- Added `return_rate_limits` parameter to `ConfigurationWebSocketAPI` to avoid receiving rate limit headers.
+- Added `id_strict_int` parameter to `WebSocketStreamBase` to fix `Derivatives Trading Options` error.
+- Updated returned error value in `send_request` function.
+- Updated Websocket `timeout` and `reconnect_delay` to be in milliseconds.
+- Updated `backoff` to be in milliseconds.
+
+## 3.2.0 - 2025-10-10
+
+### Changed (1)
+
+- Fixed issue with response model deserialization in `send_request` function in `utils.py`.
+
+## 3.1.1 - 2025-09-16
+
+### Changed (1)
+
+- Fixed missing enum check in `clean_none_value`.
+
+## 3.1.0 - 2025-09-12
+
+### Changed (3)
+
+- Updated WebsocketStream user data stream response handler
+- Updated Encoded request matrix handler
+- Fix decimal type in request parameters
+
+## 3.0.0 - 2025-09-05
+
+### Added (2)
+
+- Support automatic session re-logon on reconncetions/renewals when session is already logged on (`Session re-logon` option on `WebSocketAPIBase`).
+- Added the `api_key` parameter to include `apiKey` in WebsocketAPI request parameters.
+
+### Changed (2)
+
+- Fixed return type mismatch by returning the raw value.
+- Updated `WebsocketAPI` user data return value to match its type.
+
+## 2.0.0 - 2025-08-22
+
+### Changed (3)
+
+- Added custom REST headers
+- Added `subscribe_user_data`, `on` and `unsubscribe` method to `WebSocketAPIBase`
+- Updated `RequestStream` response type to `RequestStreamHandle`
+
+## 1.2.0 - 2025-08-07
+
+### Changed (1)
+
+- Fixed empty array response handling in `utils.py`.
+
+## 1.1.0 - 2025-08-06
+
+### Changed (2)
+
+- Updated `list_subscribe` method `json_msg` format and response.
+- Added Enum serialization in `utils.py` to handle Enum values.
+
+## 1.0.0 - 2025-01-16
+
+First release
